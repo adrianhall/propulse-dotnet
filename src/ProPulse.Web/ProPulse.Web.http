@@ -1,0 +1,6 @@
+@ProPulse.Web_HostAddress = http://localhost:5277
+
+GET {{ProPulse.Web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
