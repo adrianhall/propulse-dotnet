@@ -2,6 +2,38 @@
 
 ProPulse is an enterprise-ready article publication and social media marketing web application that can be used to host an enterprise blog and market the articles via social media.
 
+## Getting Started
+
+### Prerequisites
+
+- .NET 9 SDK
+- PostgreSQL (or Docker for containerized database)
+- Visual Studio 2025 or VS Code
+
+### Building the Project
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/propulse-dotnet.git
+cd propulse-dotnet
+
+# Build the solution
+dotnet build
+
+# Run the tests
+dotnet test
+```
+
+### Running the Application with Aspire
+
+```bash
+# Start the application using Aspire
+cd src/ProPulse.AppHost
+dotnet run
+```
+
+This will launch the Aspire dashboard and start all required services including the API, PostgreSQL database, and Redis cache.
+
 ## Personas
 
 There are four personas, which translate to "Roles" within the system:
