@@ -421,3 +421,278 @@ The implementation will follow a modular structure with:
 4. **Mappings**: AutoMapper profiles for clean entity-to-DTO conversions
 
 This approach ensures compatibility with OData requirements, maintains clean separation of concerns, and provides a structured architecture that scales well for a complex enterprise application.
+
+## 4.12. API Security Controls
+
+### 4.12.1. Authentication and Authorization Implementation
+
+The API uses a robust authentication and authorization model:
+
+1. **JWT Authentication**:
+   ```csharp
+   // Configured in Program.cs
+   builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationOptions)
+       .AddJwtBearer(options =>
+       {
+           options.TokenValidationParameters = new TokenValidationParameters
+           {
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidateLifetime = true,
+               ValidateIssuerSigningKey = true,
+               ValidIssuer = configuration["Jwt:Issuer"],
+               ValidAudience = configuration["Jwt:Audience"],
+               IssuerSigningKey = new SymmetricSecurityKey(
+                   Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+           };
+       });
+   ```
+
+2. **Role-Based Authorization**:
+   ```csharp
+   [Authorize(Roles = "Author")]
+   [HttpPost("articles")]
+   public async Task<IActionResult> CreateArticle([FromBody] CreateArticleCommand command)
+   {
+       // Implementation...
+   }
+   ```
+
+3. **Resource-Based Authorization**:
+   ```csharp
+   // ArticleAuthorizationHandler.cs
+   public class ArticleAuthorizationHandler : 
+       AuthorizationHandler<OperationAuthorizationRequirement, Article>
+   {
+       protected override Task HandleRequirementAsync(
+           AuthorizationHandlerContext context,
+           OperationAuthorizationRequirement requirement,
+           Article resource)
+       {
+           var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           
+           if (requirement.Name == Operations.Update.Name || 
+               requirement.Name == Operations.Delete.Name)
+           {
+               if (resource.CreatedById == userId)
+               {
+                   context.Succeed(requirement);
+               }
+           }
+           
+           // Other authorization logic...
+           
+           return Task.CompletedTask;
+       }
+   }
+   ```
+
+### 4.12.2. Input Validation and Sanitization
+
+All API inputs are validated through a multi-layered approach:
+
+1. **Model Validation**:
+   ```csharp
+   // CreateArticleCommandValidator.cs
+   public class CreateArticleCommandValidator : AbstractValidator<CreateArticleCommand>
+   {
+       public CreateArticleCommandValidator()
+       {
+           RuleFor(x => x.Title)
+               .NotEmpty()
+               .MinimumLength(5)
+               .MaximumLength(200)
+               .Matches("^[a-zA-Z0-9 .,!?'-]+$")
+               .WithMessage("Title contains invalid characters");
+           
+           RuleFor(x => x.Content)
+               .NotEmpty()
+               .MaximumLength(100000);
+           
+           // Other validation rules...
+       }
+   }
+   ```
+
+2. **Content Sanitization**:
+   ```csharp
+   // Middleware or service for sanitizing Markdown content
+   public string SanitizeMarkdown(string markdown)
+   {
+       // Use a secure Markdown processor with HTML sanitization
+       var pipeline = new MarkdownPipelineBuilder()
+           .UseAdvancedExtensions()
+           .DisableHtml() // Disable raw HTML
+           .Build();
+       
+       // Convert to HTML (sanitized during conversion)
+       var html = Markdown.ToHtml(markdown, pipeline);
+       
+       // Additional HTML sanitization
+       var sanitizer = new HtmlSanitizer();
+       sanitizer.AllowedTags.Remove("script");
+       sanitizer.AllowedTags.Remove("iframe");
+       sanitizer.AllowedAttributes.Remove("onclick");
+       // More sanitization configuration...
+       
+       return sanitizer.Sanitize(html);
+   }
+   ```
+
+3. **MediatR Validation Behavior**:
+   ```csharp
+   // ValidationBehavior.cs
+   public class ValidationBehavior<TRequest, TResponse> : 
+       IPipelineBehavior<TRequest, TResponse>
+       where TRequest : IRequest<TResponse>
+   {
+       private readonly IEnumerable<IValidator<TRequest>> _validators;
+       
+       public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+       {
+           _validators = validators;
+       }
+       
+       public async Task<TResponse> Handle(
+           TRequest request, 
+           RequestHandlerDelegate<TResponse> next, 
+           CancellationToken cancellationToken)
+       {
+           if (_validators.Any())
+           {
+               var context = new ValidationContext<TRequest>(request);
+               var validationResults = await Task.WhenAll(
+                   _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+               
+               var failures = validationResults
+                   .SelectMany(r => r.Errors)
+                   .Where(f => f != null)
+                   .ToList();
+               
+               if (failures.Count != 0)
+               {
+                   throw new ValidationException(failures);
+               }
+           }
+           
+           return await next();
+       }
+   }
+   ```
+
+### 4.12.3. Advanced API Protection
+
+1. **Rate Limiting Implementation**:
+   ```csharp
+   // In Program.cs
+   builder.Services.AddRateLimiter(options =>
+   {
+       options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+       {
+           // Identify the request source (user ID if authenticated, IP if not)
+           var identifier = context.User.Identity?.IsAuthenticated == true
+               ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+               : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+               
+           // Different limits based on endpoint
+           return context.Request.Path.StartsWithSegments("/api/auth")
+               ? RateLimitPartition.GetFixedWindowLimiter(identifier, _ => 
+                   new FixedWindowRateLimiterOptions
+                   {
+                       Window = TimeSpan.FromMinutes(5),
+                       PermitLimit = 10,
+                       QueueLimit = 0
+                   })
+               : RateLimitPartition.GetFixedWindowLimiter(identifier, _ => 
+                   new FixedWindowRateLimiterOptions
+                   {
+                       Window = TimeSpan.FromMinutes(1),
+                       PermitLimit = 100,
+                       QueueLimit = 0
+                   });
+       });
+       
+       options.OnRejected = async (context, token) =>
+       {
+           context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+           
+           // Log rate limit hit for security monitoring
+           var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+           logger.LogWarning("Rate limit exceeded for {User} from {IP}", 
+               context.HttpContext.User.Identity?.Name ?? "anonymous",
+               context.HttpContext.Connection.RemoteIpAddress);
+               
+           await context.HttpContext.Response.WriteAsync(
+               "Too many requests. Please try again later.", token);
+       };
+   });
+   ```
+
+2. **API Audit Logging**:
+   ```csharp
+   // AuditBehavior.cs
+   public class AuditBehavior<TRequest, TResponse> : 
+       IPipelineBehavior<TRequest, TResponse>
+       where TRequest : IRequest<TResponse>
+   {
+       private readonly IHttpContextAccessor _httpContextAccessor;
+       private readonly IAuditService _auditService;
+       private readonly ILogger<AuditBehavior<TRequest, TResponse>> _logger;
+       
+       // Constructor with DI...
+       
+       public async Task<TResponse> Handle(
+           TRequest request, 
+           RequestHandlerDelegate<TResponse> next, 
+           CancellationToken cancellationToken)
+       {
+           // Extract request information
+           var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+           var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+           var requestName = typeof(TRequest).Name;
+           
+           // Log before execution
+           _logger.LogInformation("Handling {RequestName} from user {UserId} at {IpAddress}", 
+               requestName, userId ?? "anonymous", ipAddress ?? "unknown");
+           
+           // Execute the handler
+           var response = await next();
+           
+           // Record to audit log if this is a command (not a query)
+           if (typeof(TRequest).GetInterfaces().Any(i => i.Name.Contains("ICommand")))
+           {
+               await _auditService.RecordAuditTrailAsync(new AuditTrail
+               {
+                   UserId = userId,
+                   Action = requestName,
+                   Timestamp = DateTimeOffset.UtcNow,
+                   ClientIP = ipAddress,
+                   EntityType = GetEntityType(request),
+                   EntityId = GetEntityId(request),
+                   Data = JsonSerializer.Serialize(request)
+               });
+           }
+           
+           return response;
+       }
+       
+       // Helper methods to extract entity information...
+   }
+   ```
+
+3. **Security Headers**:
+   ```csharp
+   // In Program.cs or middleware
+   app.Use(async (context, next) =>
+   {
+       // Security headers
+       context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+       context.Response.Headers.Add("X-Frame-Options", "DENY");
+       context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+       context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+       context.Response.Headers.Add("Content-Security-Policy", 
+           "default-src 'self'; script-src 'self'; object-src 'none'; img-src 'self' data:;");
+       
+       await next();
+   });
+   ```

@@ -400,3 +400,157 @@ flowchart TD
 ```
 
 **Note:** This diagram represents the happy path flow. Comprehensive error handling is expected at each step, including validation errors, network failures, authorization issues, and database errors.
+
+## 5.3. Security and Privacy Features
+
+### 5.3.1. Content Security Controls
+
+ProPulse implements several controls to ensure secure rendering of user-generated content:
+
+1. **Markdown Rendering Security**:
+   - Custom Markdown processor that disables raw HTML
+   - HTML sanitization of rendered output
+   - Content Security Policy to prevent XSS
+
+```csharp
+// Secure Markdown rendering service
+public class SecureMarkdownService : IMarkdownService
+{
+    public string RenderMarkdown(string markdown)
+    {
+        // Use a secure Markdown processor with HTML sanitization
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .DisableHtml() // Disable raw HTML
+            .Build();
+        
+        // Convert to HTML (sanitized during conversion)
+        var html = Markdown.ToHtml(markdown, pipeline);
+        
+        // Additional HTML sanitization
+        var sanitizer = new HtmlSanitizer();
+        sanitizer.AllowedTags.Remove("script");
+        sanitizer.AllowedTags.Remove("iframe");
+        // More configuration...
+        
+        return sanitizer.Sanitize(html);
+    }
+}
+```
+
+2. **Comment Moderation Workflow**:
+
+```mermaid
+flowchart TD
+    A[User Submits Comment] --> B{Automatic Filtering}
+    B -->|Flagged| C[Put in Moderation Queue]
+    B -->|Passed| D[Published with Hidden Flag]
+    C --> E[Admin Review]
+    E -->|Approved| F[Publish Comment]
+    E -->|Rejected| G[Delete Comment]
+    D --> H[Visible to All Users]
+    H --> I{Reported by Users?}
+    I -->|Yes| J[Put in Review Queue]
+    J --> K[Admin Review]
+    K -->|Flagged| L[Hide Comment]
+    K -->|Approved| M[Keep Visible]
+```
+
+3. **Media Content Validation**:
+   - File type validation
+   - Malware scanning
+   - Metadata sanitization
+
+### 5.3.2. Privacy Features Implementation
+
+ProPulse implements privacy features to comply with regulations:
+
+1. **User Data Access Portal**:
+
+```mermaid
+flowchart TD
+    A[User Visits Settings] --> B[Select Privacy Options]
+    B --> C{Action Selection}
+    C -->|View Data| D[Request Data Export]
+    C -->|Delete Account| E[Request Account Deletion]
+    C -->|Change Preferences| F[Update Privacy Settings]
+    D --> G[Generate Data Package]
+    G --> H[Email Download Link]
+    H --> I[Download Expires After 48 Hours]
+    E --> J{Confirmation}
+    J -->|Confirm| K[Process Deletion]
+    J -->|Cancel| B
+    K --> L[Anonymize User Data]
+    L --> M[Delete Account]
+    F --> N[Update Consent Settings]
+    N --> O[Save Preferences]
+    O --> P[Update Data Processing Flags]
+```
+
+2. **Consent Management**:
+   - Granular consent tracking
+   - Consent audit trail
+   - Per-feature consent options
+
+```csharp
+// Consent management service
+public class ConsentService : IConsentService
+{
+    private readonly IUserConsentRepository _repository;
+    private readonly ILogger<ConsentService> _logger;
+    
+    // Constructor with DI...
+    
+    public async Task<bool> HasConsentAsync(string userId, ConsentType consentType)
+    {
+        var consent = await _repository.GetConsentAsync(userId, consentType);
+        return consent?.IsGranted ?? false;
+    }
+    
+    public async Task SetConsentAsync(string userId, ConsentType consentType, bool granted)
+    {
+        await _repository.SetConsentAsync(userId, consentType, granted);
+        
+        _logger.LogInformation("User {UserId} {Action} consent for {ConsentType}", 
+            userId, granted ? "granted" : "revoked", consentType);
+            
+        // Process consent change implications
+        if (consentType == ConsentType.Marketing && !granted)
+        {
+            // Remove from marketing lists
+            await _marketingService.RemoveUserFromAllListsAsync(userId);
+        }
+    }
+    
+    public async Task<IList<UserConsent>> GetAllConsentsAsync(string userId)
+    {
+        return await _repository.GetAllConsentsAsync(userId);
+    }
+}
+```
+
+3. **Privacy-Preserving User Journeys**:
+   - Clear notices before data collection
+   - Just-in-time consent gathering
+   - Transparency about data usage
+
+### 5.3.3. Cookie Management Implementation
+
+ProPulse implements a comprehensive cookie management system:
+
+1. **Cookie Categories**:
+   - Essential (no consent required)
+   - Functional (enhances experience)
+   - Analytics (usage tracking)
+   - Marketing (targeting and advertising)
+
+2. **Cookie Consent Banner**:
+   - Clear categorization
+   - Granular opt-in choices
+   - Easy access to change preferences
+
+3. **Cookie Implementation**:
+   - First-party only where possible
+   - Secure, HttpOnly flags for sensitive cookies
+   - SameSite attribute set appropriately
+   - Minimal duration and expiry times

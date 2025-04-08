@@ -338,4 +338,94 @@ ALTER TABLE "BaseEntity" ADD CONSTRAINT "FK_BaseEntity_AspNetUsers_CreatedById"
     FOREIGN KEY ("CreatedById") REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL;
 ```
 
-The cascade delete behavior is carefully designed to ensure data integrity while preventing unintended data loss.
+## 3.4. Data Classification and Security
+
+### 3.4.1. PII and Sensitive Data Classification
+
+The ProPulse data model includes several categories of personal and sensitive information that require special handling:
+
+| Entity | Field | Classification | Sensitivity | Encryption | Purpose |
+|--------|-------|---------------|-------------|------------|---------|
+| AspNetUsers | Id | Identifier | Low | No | User identification |
+| AspNetUsers | UserName | Direct PII | Medium | No | Login, display |
+| AspNetUsers | Email | Direct PII | High | No | Communication |
+| AspNetUsers | PasswordHash | Authentication | Critical | Yes (hashing) | Authentication |
+| AspNetUsers | DisplayName | Direct PII | Medium | No | Public display |
+| AspNetUsers | ProfilePictureUrl | Indirect PII | Low | No | Public display |
+| AspNetUsers | Bio | Indirect PII | Low | No | Public display |
+| SocialMediaAccount | AccessToken | Credentials | Critical | Yes (column-level) | API access |
+| SocialMediaAccount | RefreshToken | Credentials | Critical | Yes (column-level) | Token renewal |
+| BaseEntity | CreatedById | Association | Low | No | Audit trail |
+| Article | Content | User Content | Low | No | Publication |
+| Comment | Content | User Content | Low | No | Interaction |
+
+### 3.4.2. Data Encryption Implementation
+
+ProPulse implements several encryption mechanisms:
+
+1. **Column-Level Encryption**:
+   ```csharp
+   // Implementation pattern for encrypting social media tokens
+   public class SocialMediaAccount : BaseEntity
+   {
+       // Stored encrypted in the database
+       public string AccessToken { get; set; }
+       
+       // Non-mapped property to access decrypted value
+       [NotMapped]
+       public string DecryptedAccessToken
+       {
+           get => EncryptionService.Decrypt(AccessToken);
+           set => AccessToken = EncryptionService.Encrypt(value);
+       }
+   }
+   ```
+
+2. **Entity Framework Value Converters**:
+   ```csharp
+   // In DbContext configuration
+   protected override void OnModelCreating(ModelBuilder modelBuilder)
+   {
+       // Configure encrypted fields using value converters
+       modelBuilder.Entity<SocialMediaAccount>()
+           .Property(e => e.AccessToken)
+           .HasConversion(
+               v => EncryptionService.Encrypt(v),
+               v => EncryptionService.Decrypt(v));
+             
+       // Similar configuration for other sensitive fields
+   }
+   ```
+
+3. **Encryption Service**:
+   The system uses Azure Key Vault for key management and AES-256 for encryption.
+
+### 3.4.3. Audit Trail Implementation
+
+The BaseEntity includes audit fields, but the system implements additional audit capabilities:
+
+1. **Entity History Tracking**:
+   - Entity changes tracked in separate history tables
+   - Implemented through triggers or EF Core interceptors
+   - Maintains immutable record of all data changes
+
+2. **User Action Audit**:
+   ```sql
+   CREATE TABLE "AuditLogs" (
+       "Id" text NOT NULL,
+       "UserId" text NULL,
+       "Action" text NOT NULL,
+       "EntityType" text NOT NULL,
+       "EntityId" text NOT NULL,
+       "Timestamp" timestamptz NOT NULL,
+       "OldValues" jsonb NULL,
+       "NewValues" jsonb NULL,
+       "ClientIP" text NULL,
+       CONSTRAINT "PK_AuditLogs" PRIMARY KEY ("Id")
+   );
+   ```
+
+3. **MediatR Audit Behavior**:
+   - Cross-cutting audit behavior for all commands
+   - Captures pre and post operation state
+   - Automatically logs to audit trail
