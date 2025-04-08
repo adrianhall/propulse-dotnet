@@ -10,6 +10,7 @@
         *   `Microsoft.AspNetCore.Authentication.JwtBearer`
         *   `Microsoft.AspNetCore.Identity.UI`
         *   Social provider packages (e.g., `Microsoft.AspNetCore.Authentication.Google`, `Microsoft.AspNetCore.Authentication.Facebook`)
+    * Update the `ApplicationDbContext` to inherit from `IdentityDbContext<TUser, TRole, TKey>`.
 2.  **Create Identity Models:**
     *   In the `ProPulse.Core` project, create an `ApplicationUser` class that extends `IdentityUser`.
     *   Add custom properties to `ApplicationUser`:
@@ -50,6 +51,7 @@
 **Projects Affected:**
 
 *   `ProPulse.Core`
+*   `ProPulse.Data`
 *   `ProPulse.Web`
 *   `ProPulse.Web.Tests`
 
