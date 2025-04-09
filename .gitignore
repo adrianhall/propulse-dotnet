@@ -44,6 +44,7 @@ _ReSharper*/
 *.coverage
 *.coveragexml
 TestResults/
+coverage-results/
 
 # NuGet
 *.nuget.props

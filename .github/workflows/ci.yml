@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,9 +28,52 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
       
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-      
-    - name: Publish
-      if: github.ref == 'refs/heads/main'
-      run: dotnet publish src/ProPulse.Web/ProPulse.Web.csproj -c Release -o publish
+    - name: Test with coverage
+      run: |
+        mkdir -p coverage-results
+        dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage" --results-directory coverage-results
+        
+    - name: ReportGenerator
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
+      with:
+        # REQUIRED 
+        # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
+        reports: 'coverage-results/**/coverage.cobertura.xml'
+        # The directory where the generated report should be saved.
+        targetdir: 'coverage-results/report'
+        # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, OpenCover, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, Html_BlueRed_Summary, JsonSummary, CodeClimate, Latex, LatexSummary, lcov, MarkdownSummary, MarkdownAssembliesSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, SvgChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary
+        reporttypes: 'Cobertura' 
+        # Optional list of assemblies that should be included or excluded in the report. Exclusion filters take precedence over inclusion filters. Wildcards are allowed.
+        assemblyfilters: '+ProPulse.*;-*.Tests;-ProPulse.AppHost;-ProPulse.ServiceDefaults' 
+        # The verbosity level of the log messages. Values: Verbose, Info, Warning, Error, Off
+        verbosity: 'Info'
+        # Optional Title
+        title: 'ProPulse Coverage' 
+        toolpath: 'reportgeneratortool'
+
+    - name: Generate Code Coverage Summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage-results/report/Cobertura.xml
+        format: markdown
+        output: both
+        badge: true
+        fail_below_min: false
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        thresholds: '70 90'
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: coverage-results
+        
+    - name: Post Coverage Summary as PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+
