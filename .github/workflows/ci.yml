@@ -35,16 +35,28 @@ jobs:
           /p:CollectCoverage=true \
           /p:CoverletOutputFormat=cobertura \
           /p:ExcludeByFile="**/Program.cs" \
-          /p:CoverletOutput="coverage-results/"
+          /p:CoverletOutput="coverage-results/" \
+          /p:MergeWith="coverage-results/coverage.json" \
+          /p:CoverletOutputFormat="cobertura"
           
     - name: Generate coverage reports
       run: |
         projects=$(find src -type d -not -path "*/\.*" -not -path "*/bin/*" -not -path "*/obj/*" \
           -not -path "*AppHost*" -not -path "*ServiceDefaults*" -not -path "*.Tests*" -mindepth 1 -maxdepth 1)
         
+        # Find all coverage files
+        coverage_files=$(find coverage-results -name "*.cobertura.xml" -type f)
+        
+        # If no coverage files found, exit with error
+        if [ -z "$coverage_files" ]; then
+          echo "No coverage files found in coverage-results directory"
+          ls -la coverage-results/
+          exit 1
+        fi
+        
         # Generate HTML report for all projects
         reportgenerator \
-          -reports:"coverage-results/coverage.cobertura.xml" \
+          -reports:"coverage-results/*.cobertura.xml" \
           -targetdir:"coverage-results/report" \
           -reporttypes:Html,TextSummary
           
@@ -57,7 +69,7 @@ jobs:
           echo "Generating coverage report for $project_name..."
           
           reportgenerator \
-            -reports:"coverage-results/coverage.cobertura.xml" \
+            -reports:"coverage-results/*.cobertura.xml" \
             -targetdir:"coverage-results/report-$project_name" \
             -reporttypes:Html,MarkdownSummary \
             -filefilters:"+$project/**/*" \
