@@ -101,9 +101,9 @@ classDiagram
         string ExternalPostId
         jsonb PlatformMetadata
         jsonb AnalyticsData
-    }
-    class Attachment {
-        string ArticleId
+    }    class Attachment {
+        string OwnerId
+        string OwnerType
         string ContentType
         string LogicalName
         string StorageLocation

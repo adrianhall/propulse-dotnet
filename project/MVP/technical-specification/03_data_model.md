@@ -117,13 +117,15 @@ requirements.
 | Column | .NET Type | PostgreSQL Type | Constraints | Description |
 |--------|-----------|----------------|-------------|-------------|
 | Id | string | text | PK | Unique identifier for the attachment |
-| ArticleId | string | text | FK, NOT NULL | Reference to Article.Id |
+| OwnerId | string | text | NOT NULL | ID of the entity that owns this attachment |
+| OwnerType | string | text | NOT NULL | Type of entity that owns this attachment (e.g., "Article", "ApplicationUser") |
 | ContentType | string | text | NOT NULL | MIME type of the attachment (e.g., image/png) |
-| LogicalName | string | text | NOT NULL | Name used to reference the attachment within the article |
+| LogicalName | string | text | NOT NULL | Name used to reference the attachment within the owning entity |
 | StorageLocation | string | text | NOT NULL | Path or URL to the stored attachment in media storage |
 | FileSize | long | bigint | NOT NULL | Size of the attachment in bytes |
 
-* The `LogicalName` must be unique within the scope of an article. This is enforced by a unique constraint on (ArticleId, LogicalName).
+* The `LogicalName` must be unique within the scope of an owner entity. This is enforced by a unique constraint on (OwnerType, OwnerId, LogicalName).
+* The `OwnerType` and `OwnerId` form a polymorphic association that allows attachments to be associated with different entity types (e.g., Article, ApplicationUser, SocialMediaAccount, SocialMediaPost).
 
 ## 3.2. Entity Relationship Diagram
 
@@ -148,11 +150,15 @@ erDiagram
     Article ||--o{ Attachment : "has"
     Comment ||--o{ Comment : "has replies"
     SocialMediaAccount ||--o{ SocialMediaPost : "used for"
+    AspNetUsers ||--o{ Attachment : "has profile picture"
+    SocialMediaAccount ||--o{ Attachment : "has profile picture"
+    SocialMediaPost ||--o{ Attachment : "has image"
     BaseEntity ||--o{ Article : "extends"
     BaseEntity ||--o{ Comment : "extends"
     BaseEntity ||--o{ Rating : "extends"
     BaseEntity ||--o{ SocialMediaAccount : "extends"
     BaseEntity ||--o{ SocialMediaPost : "extends"
+    BaseEntity ||--o{ Attachment : "extends"
     
     AspNetUsers {
         string Id PK
@@ -312,31 +318,186 @@ CREATE UNIQUE INDEX "IX_Attachments_ArticleId_LogicalName" ON "Attachments" USIN
 The system uses cascading deletes for certain relationships to maintain data integrity when a parent record is deleted:
 
 1. **Articles and related entities**:
-   - When an article is deleted, all associated comments, ratings, attachments, and social media posts are automatically deleted.
-   - This is implemented with `ON DELETE CASCADE` constraints.
+   - When an article is deleted, all associated comments, ratings, and social media posts are automatically deleted.
+   - Attachments owned by the article (where OwnerType = "Article" and OwnerId = Article.Id) are also deleted.
+   - This is implemented with `ON DELETE CASCADE` constraints and custom delete behavior for polymorphic associations.
 
 2. **Comments with replies**:
    - When a parent comment is deleted, all reply comments are also deleted.
 
 3. **Social Media Accounts**:
    - When a social media account is deleted, associated posts are deleted, but articles are preserved.
+   - Attachments owned by the account (where OwnerType = "SocialMediaAccount" and OwnerId = SocialMediaAccount.Id) are also deleted.
 
-4. **Users**:
+4. **Social Media Posts**:
+   - When a social media post is deleted, any associated attachments (where OwnerType = "SocialMediaPost" and OwnerId = SocialMediaPost.Id) are also deleted.
+
+5. **Users**:
    - When a user is deleted, their created content (articles, comments) remains but the CreatedById reference is set to NULL.
-   - This is implemented with `ON DELETE SET NULL` constraints on the CreatedById and UpdatedById columns.
+   - Attachments owned by the user (where OwnerType = "ApplicationUser" and OwnerId = AspNetUsers.Id) are also deleted.
+   - This is implemented with `ON DELETE SET NULL` constraints on the CreatedById and UpdatedById columns and custom delete behavior for polymorphic associations.
 
-Example foreign key definitions:
+Example foreign key and trigger definitions:
 
 ```sql
-ALTER TABLE "Attachments" ADD CONSTRAINT "FK_Attachments_Articles_ArticleId" 
-    FOREIGN KEY ("ArticleId") REFERENCES "Articles" ("Id") ON DELETE CASCADE;
-
+-- Traditional foreign key cascade delete
 ALTER TABLE "Comments" ADD CONSTRAINT "FK_Comments_Comments_ParentCommentId" 
     FOREIGN KEY ("ParentCommentId") REFERENCES "Comments" ("Id") ON DELETE CASCADE;
 
 ALTER TABLE "BaseEntity" ADD CONSTRAINT "FK_BaseEntity_AspNetUsers_CreatedById" 
     FOREIGN KEY ("CreatedById") REFERENCES "AspNetUsers" ("Id") ON DELETE SET NULL;
+
+-- Trigger for polymorphic cascading delete
+CREATE OR REPLACE FUNCTION delete_entity_attachments()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Delete attachments for the entity being deleted
+    DELETE FROM "Attachments" 
+    WHERE "OwnerType" = TG_ARGV[0] AND "OwnerId" = OLD."Id";
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for each entity type that owns attachments
+CREATE TRIGGER delete_article_attachments_trigger
+AFTER DELETE ON "Articles"
+FOR EACH ROW
+EXECUTE FUNCTION delete_entity_attachments('Article');
+
+CREATE TRIGGER delete_social_media_post_attachments_trigger
+AFTER DELETE ON "SocialMediaPosts"
+FOR EACH ROW
+EXECUTE FUNCTION delete_entity_attachments('SocialMediaPost');
 ```
+
+### Polymorphic Attachment Design
+
+The Attachment entity uses a polymorphic association pattern to enable flexible relationships with multiple entity types:
+
+1. **Design Pattern**:
+   - Instead of using traditional foreign keys that reference a specific table, the Attachment entity uses a combination of `OwnerId` and `OwnerType` fields.
+   - The `OwnerId` stores the ID of the owning entity (e.g., an Article.Id or ApplicationUser.Id).
+   - The `OwnerType` stores the type of the owning entity (e.g., "Article", "ApplicationUser", "SocialMediaPost").
+
+2. **Benefits**:
+   - Allows a single Attachment table to serve multiple entity types
+   - Avoids creating separate attachment tables for each entity type
+   - Provides consistent attachment handling across the application
+   - Enables centralized attachment storage and management
+   - Simplifies queries for finding all attachments regardless of owner type
+
+3. **Implementation in Entity Framework Core**:
+   ```csharp
+   // In DbContext configuration
+   protected override void OnModelCreating(ModelBuilder modelBuilder)
+   {
+       // Create a composite index for efficient lookups
+       modelBuilder.Entity<Attachment>()
+           .HasIndex(a => new { a.OwnerType, a.OwnerId });
+           
+       // Create a unique constraint for logical names within owner scope
+       modelBuilder.Entity<Attachment>()
+           .HasIndex(a => new { a.OwnerType, a.OwnerId, a.LogicalName })
+           .IsUnique();
+   }
+   ```
+
+4. **Handling Deletion**:
+   - EF Core does not natively support cascade delete for polymorphic associations
+   - The application implements cascade delete through one of three approaches:
+     
+     a. **Application-level cascade delete**:
+     ```csharp
+     // In a service method
+     public async Task DeleteEntityAsync<T>(string entityId) where T : BaseEntity
+     {
+         // Delete the entity
+         var entity = await _dbContext.Set<T>().FindAsync(entityId);
+         if (entity != null)
+         {
+             _dbContext.Set<T>().Remove(entity);
+             
+             // Delete associated attachments
+             var attachments = await _dbContext.Attachments
+                 .Where(a => a.OwnerType == typeof(T).Name && a.OwnerId == entityId)
+                 .ToListAsync();
+                 
+             _dbContext.Attachments.RemoveRange(attachments);
+             
+             await _dbContext.SaveChangesAsync();
+         }
+     }
+     ```
+     
+     b. **Database triggers** (as shown in the SQL example above):
+     - Ensures attachments are deleted even if deleted through direct database operations
+     - Maintains referential integrity at database level
+     
+     c. **Domain events pattern** (recommended approach):
+     ```csharp
+     // 1. Define domain event
+     public record EntityDeletedEvent(BaseEntity Entity) : IDomainEvent;
+     
+     // 2. Create event handler
+     public class EntityDeletedEventHandler : INotificationHandler<EntityDeletedEvent>
+     {
+         private readonly IProPulseDbContext _dbContext;
+         
+         public EntityDeletedEventHandler(IProPulseDbContext dbContext)
+         {
+             _dbContext = dbContext;
+         }
+         
+         public async Task Handle(EntityDeletedEvent notification, CancellationToken cancellationToken)
+         {
+             var entity = notification.Entity;
+             
+             // Find and delete any attachments owned by this entity
+             var attachments = await _dbContext.Attachments
+                 .Where(a => a.OwnerType == entity.GetType().Name && a.OwnerId == entity.Id)
+                 .ToListAsync(cancellationToken);
+                 
+             if (attachments.Any())
+             {
+                 _dbContext.Attachments.RemoveRange(attachments);
+                 await _dbContext.SaveChangesAsync(cancellationToken);
+             }
+         }
+     }
+     ```
+
+5. **Helper Methods**:
+   ```csharp
+   // Extension methods for working with attachments
+   public static class AttachmentExtensions
+   {
+       // Get all attachments for an entity
+       public static IQueryable<Attachment> GetAttachmentsForEntity<T>(
+           this IQueryable<Attachment> query, string entityId) where T : BaseEntity
+       {
+           return query.Where(a => a.OwnerType == typeof(T).Name && a.OwnerId == entityId);
+       }
+       
+       // Add an attachment to an entity
+       public static Attachment AddAttachmentToEntity<T>(
+           this T entity, string logicalName, string contentType, string storageLocation, long fileSize)
+           where T : BaseEntity
+       {
+           return new Attachment
+           {
+               OwnerId = entity.Id,
+               OwnerType = typeof(T).Name,
+               LogicalName = logicalName,
+               ContentType = contentType,
+               StorageLocation = storageLocation,
+               FileSize = fileSize
+           };
+       }
+   }
+   ```
+
+The polymorphic association pattern provides a more flexible approach to managing attachments across different entity types while maintaining data integrity. This approach aligns with modern database design practices and enables efficient querying and management of attachments regardless of which entity type they belong to.
 
 ## 3.4. Data Classification and Security
 

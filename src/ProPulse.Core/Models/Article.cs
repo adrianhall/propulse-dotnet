@@ -1,6 +1,6 @@
 using ProPulse.Common;
 
-namespace ProPulse.Core;
+namespace ProPulse.Core.Models;
 
 /// <summary>
 /// Represents an article in the ProPulse content management system.
@@ -26,11 +26,11 @@ public class Article : BaseEntity
     /// Gets or sets the main content of the article.
     /// </summary>
     public string Content { get; set; } = string.Empty;
-    
+      
     /// <summary>
-    /// Gets or sets the URL to the article's cover image.
+    /// Gets or sets the ID of the attachment used as the article's cover image.
     /// </summary>
-    public string? CoverImageUrl { get; set; }
+    public string? CoverImageAttachmentId { get; set; }
     
     /// <summary>
     /// Gets or sets the current status of the article.
@@ -47,4 +47,29 @@ public class Article : BaseEntity
     /// If null, the article has no expiration date.
     /// </summary>
     public DateTimeOffset? PublishedUntil { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the collection of article tags associated with this article.
+    /// </summary>
+    public virtual ICollection<ArticleTag> ArticleTags { get; set; } = [];
+    
+    /// <summary>
+    /// Gets or sets the collection of comments on this article.
+    /// </summary>
+    public virtual ICollection<Comment> Comments { get; set; } = [];
+    
+    /// <summary>
+    /// Gets or sets the cover image attachment.
+    /// </summary>
+    public virtual Attachment? CoverImageAttachment { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the collection of ratings for this article.
+    /// </summary>
+    public virtual ICollection<Rating> Ratings { get; set; } = [];
+    
+    /// <summary>
+    /// Gets or sets the collection of social media posts promoting this article.
+    /// </summary>
+    public virtual ICollection<SocialMediaPost> SocialMediaPosts { get; set; } = [];
 }

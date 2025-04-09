@@ -1,4 +1,4 @@
-namespace ProPulse.Core;
+namespace ProPulse.Core.Models;
 
 /// <summary>
 /// Interface for entities that support user auditing.

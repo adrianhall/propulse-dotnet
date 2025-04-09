@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace ProPulse.Core.Identity;
+namespace ProPulse.Core.Models.Identity;
 
 /// <summary>
 /// Represents a user in the ProPulse application.
 /// Extends the ASP.NET Core Identity IdentityUser class with additional properties.
 /// </summary>
 public class ApplicationUser : IdentityUser
-{
+{    
     /// <summary>
     /// Gets or sets the display name of the user.
     /// This is the name that is shown to other users in the application.
@@ -15,9 +15,9 @@ public class ApplicationUser : IdentityUser
     public string? DisplayName { get; set; }
     
     /// <summary>
-    /// Gets or sets the URL to the user's profile picture.
+    /// Gets or sets the ID of the attachment used as the user's profile picture.
     /// </summary>
-    public string? ProfilePictureUrl { get; set; }
+    public string? ProfilePictureAttachmentId { get; set; }
     
     /// <summary>
     /// Gets or sets the user's biographical information.
