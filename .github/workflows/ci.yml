@@ -76,7 +76,4 @@ jobs:
       with:
         recreate: true
         path: code-coverage-results.md
-        
-    - name: Publish
-      if: github.ref == 'refs/heads/main'
-      run: dotnet publish src/ProPulse.Web/ProPulse.Web.csproj -c Release -o publish
+
