@@ -57,13 +57,6 @@ reportgenerator `
     -reporttypes:"Html;TextSummary" `
     -title:"ProPulse Coverage Report"
 
-# Display summary if it exists
-$summaryFile = "$coverageDir/report/Summary.txt"
-if (Test-Path $summaryFile) {
-    Write-Host "`nCoverage Summary:" -ForegroundColor Green
-    Get-Content $summaryFile | ForEach-Object { Write-Host $_ }
-}
-
 # Define which source projects we want to check coverage for
 $projectsForCoverage = (Get-ChildItem -Path src -Exclude "*AppHost*", "*ServiceDefaults*", "*.Tests*" -Directory).Name | ForEach-Object { "src/$_" }
 
@@ -83,3 +76,10 @@ foreach ($project in $projectsForCoverage) {
 
 Write-Host "`nCode coverage reports generated in $coverageDir/report" -ForegroundColor Green
 Write-Host "Build completed successfully!" -ForegroundColor Green
+
+# Display summary if it exists
+$summaryFile = "$coverageDir/report/Summary.txt"
+if (Test-Path $summaryFile) {
+    Write-Host "`nCoverage Summary:" -ForegroundColor Green
+    Get-Content $summaryFile | ForEach-Object { Write-Host $_ }
+}

@@ -56,13 +56,6 @@ reportgenerator \
     -reporttypes:"Html;TextSummary" \
     -title:"ProPulse Coverage Report"
 
-# Display summary if it exists
-summary_file="$coverage_dir/report/Summary.txt"
-if [ -f "$summary_file" ]; then
-    echo -e "\nCoverage Summary:"
-    cat "$summary_file"
-fi
-
 # Define which source projects we want to check coverage for
 projects_for_coverage=$(find src -type d -not -path "*/\.*" -not -path "*/bin/*" -not -path "*/obj/*" \
     -not -path "*AppHost*" -not -path "*ServiceDefaults*" -not -path "*.Tests*" -mindepth 1 -maxdepth 1)
@@ -83,3 +76,10 @@ done
 
 echo -e "\nCode coverage reports generated in $coverage_dir/report"
 echo "Build completed successfully!"
+
+# Display summary if it exists
+summary_file="$coverage_dir/report/Summary.txt"
+if [ -f "$summary_file" ]; then
+    echo -e "\nCoverage Summary:"
+    cat "$summary_file"
+fi
