@@ -12,6 +12,13 @@ dotnet build --no-restore
 echo "Running tests with code coverage..."
 # Create the coverage results directory if it doesn't exist
 coverage_dir="coverage-results"
+
+# Remove the coverage results directory if it exists
+if [ -d "$coverage_dir" ]; then
+    rm -rf "$coverage_dir"
+    echo "Removed existing coverage directory."
+fi
+
 mkdir -p "$coverage_dir"
 
 # Run tests with the XPlat Code Coverage collector

@@ -71,18 +71,31 @@ jobs:
           fi
         done
     
+    - name: Generate Code Coverage Summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage-results/coverage.cobertura.xml
+        format: markdown
+        output: both
+        badge: true
+        fail_below_min: false
+        hide_branch_rate: false
+        hide_complexity: false
+        indicators: true
+        thresholds: '70 90'
+
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report
         path: coverage-results
         
-    - name: Add Coverage PR Comment
+    - name: Post Coverage Summary as PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
-        header: code-coverage
-        path: coverage-results/pr-comment.md
+        recreate: true
+        path: code-coverage-results.md
         
     - name: Publish
       if: github.ref == 'refs/heads/main'

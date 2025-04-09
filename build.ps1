@@ -9,6 +9,13 @@ dotnet build --no-restore
 Write-Host "Running tests with code coverage..."
 # Create the coverage results directory if it doesn't exist
 $coverageDir = "coverage-results"
+
+# Remove the coverage results directory if it exists
+if (Test-Path $coverageDir) {
+    Remove-Item -Recurse -Force $coverageDir
+    Write-Host "Removed existing coverage directory." -ForegroundColor Yellow
+}
+
 if (-not (Test-Path $coverageDir)) {
     New-Item -ItemType Directory -Path $coverageDir | Out-Null
 }
