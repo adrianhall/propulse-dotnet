@@ -10,11 +10,14 @@
         *   `Microsoft.EntityFrameworkCore.Design`
         *   `Npgsql.EntityFrameworkCore.PostgreSQL`
         *   `Microsoft.EntityFrameworkCore.Sqlite` (for testing)
+        *   `Microsoft.AspNetCore.Identity.EntityFrameworkCore`
 2.  **Create ApplicationDbContext:**
-    *   In the `ProPulse.Data` project, create a class `ApplicationDbContext` that inherits from `DbContext`.
-    *   Define `DbSet<T>` properties for each core domain model (`Article`, `Comment`, `Rating`, `SocialMediaAccount`, `SocialMediaPost`, `Attachment`).
+    *   In the `ProPulse.Data` project, create a class `ApplicationDbContext` that inherits from `IdentityDbContext<ApplicationUser, IdentityRole, string>`.
+    *   Define `DbSet<T>` properties for each core domain model (`Article`, `Comment`, `Rating`, `SocialMediaAccount`, `SocialMediaPost`, `Attachment`, `AuditTrail`).
     *   Override the `OnModelCreating` method to configure entity relationships, constraints, and indexes as specified in the data model.
+    *   Call `base.OnModelCreating(modelBuilder)` to set up the Identity tables.
     *   Use IEntityTypeConfiguration<T> for configuring the models.
+    *   Configure the relationships between Identity models and domain models.
     *   Create indices on all applicable columns in the data model so that OData works efficiently.
 3.  **Configure PostgreSQL:**
     *   In `ProPulse.Data`, configure the connection to the PostgreSQL database using the connection string from the configuration.
@@ -39,6 +42,16 @@
 
 ```mermaid
 classDiagram
+    class IdentityDbContext {
+        DbSet<IdentityUser> Users
+        DbSet<IdentityRole> Roles
+        DbSet<IdentityUserRole<string>> UserRoles
+        DbSet<IdentityUserClaim<string>> UserClaims
+        DbSet<IdentityRoleClaim<string>> RoleClaims
+        DbSet<IdentityUserLogin<string>> UserLogins
+        DbSet<IdentityUserToken<string>> UserTokens
+        OnModelCreating(ModelBuilder modelBuilder)
+    }
     class ApplicationDbContext {
         DbSet<Article> Articles
         DbSet<Comment> Comments
@@ -46,8 +59,10 @@ classDiagram
         DbSet<SocialMediaAccount> SocialMediaAccounts
         DbSet<SocialMediaPost> SocialMediaPosts
         DbSet<Attachment> Attachments
+        DbSet<AuditTrail> AuditTrails
         OnModelCreating(ModelBuilder modelBuilder)
     }
+    ApplicationDbContext --|> IdentityDbContext
     class Article {
         string Title
         string Slug

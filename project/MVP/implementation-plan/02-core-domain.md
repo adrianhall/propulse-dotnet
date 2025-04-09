@@ -7,7 +7,14 @@
 1.  **Define Base Entity:**
     *   In the `ProPulse.Core` project, create an abstract class `BaseEntity` with properties: `Id` (string), `CreatedAt` (DateTimeOffset), `UpdatedAt` (DateTimeOffset), `Version` (byte[]), `CreatedById` (string), and `UpdatedById` (string).
     *   Create an interface `IAuditable` with properties `CreatedById` and `UpdatedById`.
-2.  **Implement Core Domain Models:**
+2.  **Implement Identity Models:**
+    *   In the `ProPulse.Core` project, create a folder `Identity` and add the `ApplicationUser` class that extends `IdentityUser`.
+    *   Add custom properties to `ApplicationUser`:
+        *   `DisplayName` (string)
+        *   `ProfilePictureUrl` (string)
+        *   `Bio` (string)
+    *   Add appropriate documentation comments to the class and its properties.
+3.  **Implement Core Domain Models:**
     *   In the `ProPulse.Core` project, create the following domain models:
         *   `Article` (extends `BaseEntity`)
         *   `Comment` (extends `BaseEntity`)
@@ -15,10 +22,11 @@
         *   `SocialMediaAccount` (extends `BaseEntity`)
         *   `SocialMediaPost` (extends `BaseEntity`)
         *   `Attachment` (extends `BaseEntity`)
+        *   `AuditTrail` (extends `BaseEntity`)
     *   Define properties for each model according to the data model specification.
     *   Use appropriate data types and annotations for each property.
 3.  **Define Enums:**
-    *   In the `ProPulse.Shared` project, create the following enums:
+    *   In the `ProPulse.Common` project, create the following enums:
         *   `ArticleStatus` (`Draft`, `Published`, `Scheduled`)
         *   `SocialMediaPlatform` (`Facebook`, `Twitter`, `LinkedIn`, `Instagram`, `Mastodon`)
         *   `SocialMediaPostStatus` (`Pending`, `Approved`, `Rejected`, `Published`)
@@ -29,7 +37,7 @@
 **Projects Affected:**
 
 *   `ProPulse.Core`
-*   `ProPulse.Shared`
+*   `ProPulse.Common`
 *   `ProPulse.Core.Tests`
 
 **Class Diagram:**
@@ -44,6 +52,19 @@ classDiagram
         string CreatedById
         string UpdatedById
     }
+    class IdentityUser {
+        string Id
+        string UserName
+        string Email
+        string PasswordHash
+        string SecurityStamp
+    }
+    class ApplicationUser {
+        string DisplayName
+        string ProfilePictureUrl
+        string Bio
+    }
+    ApplicationUser --|> IdentityUser
     class Article {
         string Title
         string Slug
@@ -107,7 +128,7 @@ classDiagram
 
 *   \[x] `BaseEntity` class is defined with common properties.
 *   \[x] Core domain models are implemented with properties according to the data model specification.
-*   \[x] Enums are defined in the `ProPulse.Shared` project.
+*   \[x] Enums are defined in the `ProPulse.Common` project.
 *   \[x] Unit tests are created for core domain models.
 *   \[x] All tests pass successfully.
 *   \[x] Initial commit with core domain models is created.

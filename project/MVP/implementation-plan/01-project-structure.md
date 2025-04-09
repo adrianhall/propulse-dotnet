@@ -9,7 +9,7 @@
 2.  **Create Core Projects:**
     *   Create a new .NET 9 class library project named `ProPulse.Core`. This project will contain core domain models, interfaces, and base classes.
     *   Create a new .NET 9 class library project named `ProPulse.Data`. This project will contain the Entity Framework Core context, entities configuration, and migrations.
-    *   Create a new .NET 9 class library project named `ProPulse.Shared`. This project will contain shared classes, enums, constants, and extension methods used across multiple projects.
+    *   Create a new .NET 9 class library project named `ProPulse.Common`. This project will contain shared classes, enums, constants, and extension methods used across multiple projects.
 3.  **Create Web Project:**
     *   Create a new ASP.NET Core 9 Web API project named `ProPulse.Web`. This project will contain the API controllers, MediatR handlers, and related DTOs.
 4.  **Create Tests Projects:**
@@ -32,7 +32,7 @@
 *   `ProPulse.sln`
 *   `ProPulse.Core`
 *   `ProPulse.Data`
-*   `ProPulse.Shared`
+*   `ProPulse.Common`
 *   `ProPulse.Web`
 *   `ProPulse.ServiceDefaults`
 *   `ProPulse.Core.Tests`
@@ -50,8 +50,7 @@ classDiagram
     }
     class ProPulse.Data {
         <<project>>
-    }
-    class ProPulse.Shared {
+    }    class ProPulse.Common {
         <<project>>
     }
     class ProPulse.Web {
@@ -82,7 +81,7 @@ classDiagram
 
 *   \[x] Solution compiles successfully.
 *   \[x] Basic project structure is in place.
-*   \[x] Core projects (`ProPulse.Core`, `ProPulse.Data`, `ProPulse.Shared`) are created.
+*   \[x] Core projects (`ProPulse.Core`, `ProPulse.Data`, `ProPulse.Common`) are created.
 *   \[x] Web project (`ProPulse.Web`) is created.
 *   \[x] Test projects are created and configured.
 *   \[x] Documentation folder is created.
