@@ -23,5 +23,5 @@ public class Tag : BaseEntity
     /// <summary>
     /// Gets or sets the collection of article tags associated with this tag.
     /// </summary>
-    public virtual ICollection<ArticleTag> ArticleTags { get; set; } = [];
+    public virtual ICollection<ArticleTag> ArticleTags { get; init; } = [];
 }

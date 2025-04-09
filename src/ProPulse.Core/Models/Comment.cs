@@ -34,5 +34,5 @@ public class Comment : BaseEntity
     /// <summary>
     /// Gets or sets the collection of replies to this comment.
     /// </summary>
-    public virtual ICollection<Comment> Replies { get; set; } = [];
+    public virtual ICollection<Comment> Replies { get; init; } = [];
 }

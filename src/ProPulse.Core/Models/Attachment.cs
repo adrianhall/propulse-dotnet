@@ -41,5 +41,5 @@ public class Attachment : BaseEntity
     /// <summary>
     /// Gets or sets the collection of articles using this attachment as their cover image.
     /// </summary>
-    public virtual ICollection<Article> ArticlesUsingAsCover { get; set; } = [];
+    public virtual ICollection<Article> ArticlesUsingAsCover { get; init; } = [];
 }

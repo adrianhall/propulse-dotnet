@@ -51,12 +51,12 @@ public class Article : BaseEntity
     /// <summary>
     /// Gets or sets the collection of article tags associated with this article.
     /// </summary>
-    public virtual ICollection<ArticleTag> ArticleTags { get; set; } = [];
+    public virtual ICollection<ArticleTag> ArticleTags { get; init; } = [];
     
     /// <summary>
     /// Gets or sets the collection of comments on this article.
     /// </summary>
-    public virtual ICollection<Comment> Comments { get; set; } = [];
+    public virtual ICollection<Comment> Comments { get; init; } = [];
     
     /// <summary>
     /// Gets or sets the cover image attachment.
@@ -66,10 +66,10 @@ public class Article : BaseEntity
     /// <summary>
     /// Gets or sets the collection of ratings for this article.
     /// </summary>
-    public virtual ICollection<Rating> Ratings { get; set; } = [];
+    public virtual ICollection<Rating> Ratings { get; init; } = [];
     
     /// <summary>
     /// Gets or sets the collection of social media posts promoting this article.
     /// </summary>
-    public virtual ICollection<SocialMediaPost> SocialMediaPosts { get; set; } = [];
+    public virtual ICollection<SocialMediaPost> SocialMediaPosts { get; init; } = [];
 }

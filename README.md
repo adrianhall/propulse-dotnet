@@ -34,6 +34,17 @@ dotnet run
 
 This will launch the Aspire dashboard and start all required services including the API, PostgreSQL database, and Redis cache.
 
+### Building in the same way as CI/CD
+
+Use [Nektos Act](https://nektosact.com/) to run the CI/CD in a docker container.  My preferred mechanism is to use
+the GitHub CLI extension, which you can install as follows:
+
+```bash
+gh extension install https://github.com/nektos/gh-act
+```
+
+You can then run the CI process using `gh act`.
+
 ## Personas
 
 There are four personas, which translate to "Roles" within the system:

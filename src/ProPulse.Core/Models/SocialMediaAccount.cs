@@ -51,5 +51,5 @@ public class SocialMediaAccount : BaseEntity
     /// <summary>
     /// Gets or sets the collection of social media posts for this account.
     /// </summary>
-    public virtual ICollection<SocialMediaPost> Posts { get; set; } = [];
+    public virtual ICollection<SocialMediaPost> Posts { get; init; } = [];
 }
