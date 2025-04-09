@@ -16,7 +16,7 @@
     *   Define `DbSet<T>` properties for each core domain model (`Article`, `Comment`, `Rating`, `SocialMediaAccount`, `SocialMediaPost`, `Attachment`, `AuditTrail`).
     *   Override the `OnModelCreating` method to configure entity relationships, constraints, and indexes as specified in the data model.
     *   Call `base.OnModelCreating(modelBuilder)` to set up the Identity tables.
-    *   Use IEntityTypeConfiguration<T> for configuring the models.
+    *   Use `IEntityTypeConfiguration<T>` for configuring the models.
     *   Configure the relationships between Identity models and domain models.
     *   Create indices on all applicable columns in the data model so that OData works efficiently.
 3.  **Configure PostgreSQL:**
@@ -30,6 +30,9 @@
 5.  **Customize Migrations:**
     *   Review the generated migration code and customize it as needed to include enum types, triggers, and unique constraints as specified in the data model.
     *   Add indices for all columns that may be used within an API call.  If in doubt, add an index.
+6.  **Create DbContext tests**
+    *   Create a test fixture that creates an `ApplicationDbContext` using an in-memory sqlite database.  Pay attention to ensure that the appropriate triggers are generated so that the CreatedAt, UpdatedAt, and other triggered properties are properly maintained.
+    *   Create unit tests to ensure the test fixture is working, especially as it relates to the trigger definitions for the CreatedAt, UpdatedAt, and other database maintained properties.
 
 **Projects Affected:**
 
