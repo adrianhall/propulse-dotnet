@@ -2,58 +2,10 @@
 
 ProPulse is an enterprise-ready article publication and social media marketing web application that can be used to host an enterprise blog and market the articles via social media.
 
-## Getting Started
+## Project Layout
 
-### Prerequisites
+The following directories are used:
 
-- .NET 9 SDK
-- PostgreSQL (or Docker for containerized database)
-- Visual Studio 2025 or VS Code
-
-### Building the Project
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/propulse-dotnet.git
-cd propulse-dotnet
-
-# Build the solution
-dotnet build
-
-# Run the tests
-dotnet test
-```
-
-### Running the Application with Aspire
-
-```bash
-# Start the application using Aspire
-cd src/ProPulse.AppHost
-dotnet run
-```
-
-This will launch the Aspire dashboard and start all required services including the API, PostgreSQL database, and Redis cache.
-
-### Building in the same way as CI/CD
-
-Use [Nektos Act](https://nektosact.com/) to run the CI/CD in a docker container.  My preferred mechanism is to use
-the GitHub CLI extension, which you can install as follows:
-
-```bash
-gh extension install https://github.com/nektos/gh-act
-```
-
-You can then run the CI process using `gh act`.
-
-## Personas
-
-There are four personas, which translate to "Roles" within the system:
-
-- **Reader** is a person who reads the articles.  This user may be anonymous (not signed in), but gains additional features if authenticated, including the ability to rate and comment on articles.
-
-- **Author** writes articles and can schedule them for publication.  They can also respond to comments on their articles and see statistics on their articles (including the average ratings and the number of users who have rated an article a particular value).
-
-- **Social Media Manager** is responsible for managing the social media feeds for the site.
-
-- **Administrator** is responsible for assigning users to roles and doing other administrative tasks.
-
+* `/.github` contains GitHub and GitHub Copilot instructions.
+* `/.github/prompts` contains a set of prompts used by GitHub Copilot as context.
+* `/project` contains the project documentation, such as technical specifications and implementation plans.

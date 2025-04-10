@@ -2,112 +2,186 @@
 
 ## 1. Product Overview
 
-**Core Value Proposition**
-ProPulse is an enterprise-grade article publishing and social media marketing platform. It enables authors to create, publish, and promote articles seamlessly while providing readers with an engaging experience to rate, comment, and share content. The platform also simplifies social media management by allowing authors to schedule posts through enterprise social media accounts managed by a social media manager.
-
-**Target Audience**
-- Enterprise organizations with a need for centralized content publishing and social media marketing.
-- Authors and content creators within enterprises.
-- Social media managers responsible for managing enterprise social media accounts.
-- Readers and consumers of enterprise content.
+- **Core value proposition**: ProPulse is a comprehensive web-based platform that empowers content creators and businesses to publish articles and seamlessly distribute them across social media channels, maximizing their content's reach and impact with minimal effort.
+- **Target audience**: 
+  - Content creators (bloggers, journalists, writers)
+  - Small to medium-sized businesses
+  - Marketing teams
+  - Social media managers
+  - Publication houses
 
 ## 2. User Requirements
 
-**User Personas**
+### Content Creator Persona
+A professional writer or subject matter expert who wants to publish their work and increase readership.
 
-1. **Author**
-   - **Jobs to be Done**
-     - Create and publish articles.
-     - Schedule articles for publication on social media.
-     - Track article performance (ratings, comments, shares).
-   - **User Stories**
-     - As an author, I want to create and edit articles, so that I can share my knowledge with readers.
-     - As an author, I want to schedule articles for social media publication, so that I can reach a wider audience.
-     - As an author, I want to view article performance metrics, so that I can understand reader engagement.
+**Jobs to be done:**
+- Create and publish high-quality articles
+- Reach a wider audience
+- Track article performance
+- Build a personal brand
 
-2. **Social Media Manager**
-   - **Jobs to be Done**
-     - Manage enterprise social media accounts.
-     - Approve and oversee scheduled posts by authors.
-   - **User Stories**
-     - As a social media manager, I want to connect enterprise social media accounts to the platform, so that authors can publish through them.
-     - As a social media manager, I want to review and approve scheduled posts, so that I can ensure compliance with enterprise guidelines.
+**User Stories:**
+- As a content creator, I want to easily write and format articles, so that I can publish professional-looking content quickly.
+- As a content creator, I want to schedule publications, so that I can maintain a consistent content calendar.
+- As a content creator, I want to view readership analytics, so that I can understand what content resonates with my audience.
+- As a content creator, I want to share my articles across multiple social media platforms, so that I can maximize my reach.
 
-3. **Reader**
-   - **Jobs to be Done**
-     - Discover and read articles.
-     - Rate and comment on articles.
-     - Share articles on personal social media accounts.
-   - **User Stories**
-     - As a reader, I want to browse and search for articles, so that I can find content relevant to my interests.
-     - As a reader, I want to rate articles, so that I can provide feedback to authors.
-     - As a reader, I want to comment on articles, so that I can engage in discussions.
-     - As a reader, I want to share articles on my social media, so that I can share valuable content with my network.
+### Business Owner Persona
+An entrepreneur or business manager who uses content marketing to promote their products/services.
 
-## 3. Non-functional Technical Decisions
+**Jobs to be done:**
+- Create brand awareness
+- Establish thought leadership
+- Generate leads through content
+- Measure marketing ROI
 
-**Scalability**
-- Decision: Use Azure App Service for hosting to handle thousands of readers and up to 25 authors.
-- Choices Considered: AWS, Azure, Google Cloud.
-- Final Choice: Azure for its seamless integration with enterprise tools and services.
+**User Stories:**
+- As a business owner, I want to publish content that aligns with my brand, so that I can build brand recognition.
+- As a business owner, I want to coordinate my article publishing with product launches, so that I can generate more interest.
+- As a business owner, I want to track engagement metrics, so that I can measure the ROI of my content marketing efforts.
+- As a business owner, I want to distribute content across multiple channels, so that I can reach potential customers where they are.
 
-**Database**
-- Decision: Use PostgreSQL for production and SQLite for testing.
-- Choices Considered: PostgreSQL, MySQL, SQL Server.
-- Final Choice: PostgreSQL for its reliability and scalability.
+### Reader Persona
+Someone who consumes published content for information, education, or entertainment.
 
-**Security**
-- Decision: Integrate ASP.NET Identity with social authentication providers (Facebook, Google, GitHub, Microsoft Account, LinkedIn) to allow outside users to authenticate.
-- Choices Considered: Azure AD, ASP.NET Identity with social authentication, custom authentication.
-- Final Choice: ASP.NET Identity with social authentication for its flexibility and support for external users.
+**Jobs to be done:**
+- Discover relevant content
+- Easily consume content
+- Save and share interesting articles
+- Engage with content creators
 
-**Performance**
-- Decision: Use caching mechanisms like Azure Cache for Redis to improve performance.
-- Choices Considered: In-memory caching, Redis, Memcached.
-- Final Choice: Azure Cache for Redis for its scalability and integration.
+**User Stories:**
+- As a reader, I want to easily find articles on topics I'm interested in, so that I can stay informed.
+- As a reader, I want to bookmark articles for later reading, so that I can return to valuable content.
+- As a reader, I want to share interesting articles with my network, so that I can provide value to my connections.
+- As a reader, I want a clean reading experience, so that I can focus on the content without distractions.
 
-**Maintainability**
-- Decision: Use ASP.NET Core with Entity Framework Core for maintainable and testable code.
-- Choices Considered: ASP.NET Core, Django, Spring Boot.
-- Final Choice: ASP.NET Core for its alignment with the preferred technology stack.
+### Marketing Manager Persona
+A professional responsible for content strategy and distribution.
 
-## 4. MVP Scope
+**Jobs to be done:**
+- Plan and execute content campaigns
+- Optimize content distribution
+- Analyze performance data
+- Report on content marketing success
 
-**Features**
-- Authoring and publishing articles.
-- Basic article rating and commenting.
-- Social media integration for scheduling posts.
-- Social media manager dashboard for account management and post approvals.
-- Reader interface for browsing, rating, commenting, and sharing articles.
+**User Stories:**
+- As a marketing manager, I want to coordinate multiple writers and publications, so that I can execute a cohesive content strategy.
+- As a marketing manager, I want to optimize posting times across platforms, so that I can maximize engagement.
+- As a marketing manager, I want to compare performance across different channels, so that I can allocate resources effectively.
+- As a marketing manager, I want to generate comprehensive reports, so that I can demonstrate the value of our content marketing.
 
-**Technical Implementation**
-- ASP.NET Core web application.
-- PostgreSQL database for production.
-- Azure App Service for hosting.
-- ASP.NET Identity with Micrsoft Entra and social providers for authentication.
+## 3. Non-functional requirements
 
-## 5. Follow-on Phased Features
+### 3.1 Security
+- Application will use modern security standards such as HTTPS/TLS and encryption-at-rest.
+- A thorough security and privacy review will be performed on a regular basis.
+- All administrative actions should be audited through structured logging.
+- User account creation and password resets must be confirmed via registered email links.
 
-**Phase 1: Enhanced Analytics and Templating**
-- Add detailed analytics for authors to track article performance (views, shares, engagement metrics).
-- Implement full templating support to enable white-label service customization, allowing enterprises to brand the platform as their own.
+### 3.2 Privacy
+- The application will be made available in the US, UK, and Europe.  Other regions may be added later.
 
-**Phase 2: Generative AI Capabilities**
-- Add AI-powered article summarization to provide concise summaries for readers.
-- Implement an authoring copilot to assist authors in drafting and refining articles.
-- Integrate AI-based image generation for creating visuals to accompany articles.
-- Enable AI-driven comment moderation to filter inappropriate or spam comments.
-- Automate social media hash-tagging using AI to enhance article discoverability.
+### 3.3 Performance
+- Up to 25 authors, and up to 10,000 readers will be supported.
+- We expect a response time in line with the information from (Miller 1968; Card et al. 1991):
+  - 0.1 seconds is the limit for having the user feel that the system is reacting instanteously
+  - 1.0 seconds is the limit for the user's flow of though to stay uninterrupted
+  - 10 seconds is the limit to keep the user's attention.
 
-**Phase 3: Advanced Social Media Features**
-- Enable multi-platform scheduling and analytics for social media posts.
-- Add support for custom social media templates.
+### 3.4 Accessibility
+- Follow recommendations from the W3C related to accessibility, particularly WCAG v2 for readers.
 
-**Phase 4: Reader Personalization**
-- Implement personalized article recommendations based on reader preferences and behavior.
+### 3.5 Localization
+- The application will be made available in the US, UK, and Europe.
+  - English language with a US locale should be supported at MVP.
+  - Multiple languages and locales should be supported in phase 4.
 
-**Phase 5: Enterprise Collaboration**
-- Add support for team collaboration features like shared drafts and editorial workflows.
+### 3.6 Architecture
+- The product should be "API first" to support additional modalities in later phases.
+  
+## 3.7 Competitors
 
-**Phase 6: Mobile Application**
-- Develop a mobile app for readers and authors to access the platform on the go.
+### Direct Competitors
+- **Medium**: A popular online publishing platform with a built-in audience and monetization options.
+- **Substack**: A newsletter platform that allows writers to publish directly to their subscribers and charge for subscriptions.
+- **WordPress.com**: A hosted version of the popular WordPress CMS, offering a simple way to create and publish content.
+
+### Indirect Competitors
+- **LinkedIn**: A professional networking platform where users can publish articles and share content.
+- **Twitter**: A microblogging platform where users can share short-form content and engage in conversations.
+- **Facebook**: A social media platform where users can share content and connect with friends and family.
+
+## 4. MVP Scope (Phase 1)
+
+The MVP will focus on core article publishing and reading functionality:
+
+### User Management
+- User registration and authentication
+- Basic profile management
+- Author profiles and bios
+
+### Content Creation
+- Rich text editor with basic formatting options
+- Article drafting and saving
+- Publishing workflow (draft, review, publish)
+- Basic image upload and embedding
+- Article categorization and tagging
+
+### Content Consumption
+- Public-facing article listing page
+- Article detail view with responsive design
+- Search functionality for articles
+- Category and tag filtering
+- Basic SEO optimization
+
+### Analytics
+- Basic view counts for articles
+- Reading time estimation
+- Simple author dashboard with article performance
+
+### Platform Administration
+- Content moderation tools
+- User management for administrators
+- Basic system settings and configuration
+
+## 5. Follow on phased features
+
+### Phase 2: Social Media Integration
+- Social media account connections
+- Automated post creation from articles
+- Scheduling capabilities for social posts
+- Cross-platform analytics
+- Link tracking and attribution
+- Social media preview customization
+
+### Phase 3: Enhanced Engagement
+- Comment system for articles
+- User ratings and reactions
+- Newsletter subscription and distribution
+- Notification system for authors and readers
+- Social sharing optimization
+
+### Phase 4: White Labeling
+- Custom domain support
+- Brand theming and customization
+- Custom CSS options
+- Logo and style management
+- Multi-tenant architecture
+
+### Phase 5: AI Capabilities
+- AI-assisted content creation
+- Automated content suggestions
+- SEO optimization recommendations
+- Smart scheduling based on engagement patterns
+- Automated content summarization
+- Topic and trend analysis
+
+### Phase 6: Monetization
+- Subscription models for premium content
+- Integrated paywall functionality
+- Ad management system
+- Affiliate link tracking
+- Author compensation models
+- Analytics for revenue attribution

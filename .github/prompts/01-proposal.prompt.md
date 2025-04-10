@@ -1,6 +1,15 @@
 I have an app idea I'd like to develop. The overall idea is in the prompt I sent to you.
 
-I'm looking to collaborate with you to turn this into a high level spec that covers the functional user requirements and non-functional technical decisions covering the five pillars of the Azure Well-Architected Framework.  Provide a scoping that includes a phased implementation plan starting with an MVP.
+I'm looking to collaborate with you to turn this into a high level product specification.
+
+A **product specification** is a document that outlines the essential information about a product.  Here are the key components typically included:
+
+* **Product Description**: A brief overview of the product, its purpose, and intended audience.
+* **Technical Specifications**: Detailed technical information, such as frameworks, pre-made technology choices, and features.
+* **Performance Criteria**: Outlines expected performance levels and benchmarks.
+* **User Stories and Personas**: Describes the roles of potential customers and their needs.
+
+This description will be used to help write a technical specification, design, and development of the product in a multi-phased product plan.
 
 Write functional user requirements using a user story, which is of the form `As a <persona>, I want to <do something>, so that <business benefit>`.
 
