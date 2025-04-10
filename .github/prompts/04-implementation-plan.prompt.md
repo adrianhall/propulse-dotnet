@@ -2,9 +2,7 @@ Generate an implementation plan based on the technical specification document pr
 
 Provide an incremental implementation plan.  Each step of the plan should leave the project in a place where it can be compiled and include relevant unit and integration tests.
 
-Create an overview of the plan in project/MVP/implementation-plan/00-overview.md.  This should cover step aims and a definition of done only, together with a link to the actual plan.
-
-Each step of the implementation plan should be written as Markdown in a separate file (e.g. project/MVP/implementation-plan/01-coreprojects.md) as if it were being given to a different developer to complete.  Write the implementation plan as if it were a GitHub issue.
+Each step of the implementation plan should be written as Markdown in a separate file (e.g. project/phase-1/implementation-plan/01-coreprojects.md) as if it were being given to a different developer to complete.  Write the implementation plan as if it were a GitHub issue, including a title, short aim, detailed steps to complete (without writing any C# code), and a definition of done.
 
 Rules:
 
