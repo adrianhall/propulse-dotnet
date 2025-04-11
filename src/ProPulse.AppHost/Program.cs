@@ -7,15 +7,21 @@ var postgres = builder.AddPostgres("postgres")
 
 var pgdb = postgres.AddDatabase("propulse-db");
 
+// Add database migrations project
+var dbMigrator = builder.AddProject<Projects.ProPulse_Database>("database-migrator")
+    .WithReference(pgdb, "DefaultConnection")
+    .WaitFor(pgdb);
+
 // Add Azurite (Azure Storage Emulator)
 var azurite = builder.AddAzureStorage("storage")
     .RunAsEmulator()
     .AddBlobs("media");
 
 // Add the API project
-var api = builder.AddProject<Projects.ProPulse_Api>("api")
-    .WithReference(pgdb).WaitFor(pgdb)
-    .WithReference(azurite).WaitFor(azurite)
+var api = builder.AddProject<Projects.ProPulse_Api>("propulse-api")
+    .WithReference(pgdb, "DefaultConnection").WaitFor(pgdb)
+    .WithReference(azurite, "AzureStorage").WaitFor(azurite)
+    .WaitForCompletion(dbMigrator)
     .WithExternalHttpEndpoints();
 
 // Add the Web project

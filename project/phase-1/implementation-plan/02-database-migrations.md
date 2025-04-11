@@ -7,7 +7,8 @@ Implement database schema migrations using DbUp and integrate with the existing 
 
 1. **Set up database connection with the existing PostgreSQL container**:
    - Use the PostgreSQL container already configured in the .NET Aspire AppHost from step 1
-   - Configure appropriate connection string variables in appsettings.json
+   - Set up connection strings in appsettings.json and appsettings.Development.json (which will be overridden by Aspire)
+   - Use the PostgreSQL client integration for Aspire to create any database connections
    - Set up a dedicated database access service in the infrastructure layer
 
 2. **Set up DbUp for database migrations**:

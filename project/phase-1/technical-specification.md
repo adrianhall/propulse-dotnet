@@ -557,232 +557,349 @@ This section details the data model used by the application, including tables, c
 ```mermaid
 erDiagram
     AspNetUsers {
-        Uuid id PK
-        string userName
-        string normalizedUserName
-        string email
-        string normalizedEmail
-        string passwordHash
-        string securityStamp
-        string concurrencyStamp
-        string phoneNumber
-        boolean phoneNumberConfirmed
-        boolean emailConfirmed
-        boolean twoFactorEnabled
-        DateTimeOffset lockoutEnd
-        boolean lockoutEnabled
-        int accessFailedCount
+        UUID id PK "IdentityUser"
+        citext userName "IdentityUser"
+        citext normalizedUserName "IdentityUser"
+        citext email "IdentityUser"
+        citext normalizedEmail "IdentityUser"
+        string passwordHash "IdentityUser"
+        string securityStamp "IdentityUser"
+        string concurrencyStamp "IdentityUser"
+        string phoneNumber "IdentityUser"
+        boolean phoneNumberConfirmed "IdentityUser"
+        boolean emailConfirmed "IdentityUser"
+        boolean twoFactorEnabled "IdentityUser"
+        timestamptz lockoutEnd "IdentityUser"
+        boolean lockoutEnabled "IdentityUser"
+        int accessFailedCount "IdentityUser"
         string displayName
         string bio
-        DateTimeOffset createdAt
-        DateTimeOffset updatedAt
+        timestamptz createdAt
+        timestamptz updatedAt
+        timestamptz lastLoginAt
         boolean isDeleted
-        DateTimeOffset deletedAt
+        timestamptz deletedAt
     }
     
     AspNetRoles {
-        Uuid id PK
-        string name
-        string normalizedName
-        string concurrencyStamp    
-    }
-    
-    Article {
-        Uuid id PK
-        Uuid createdBy FK
-        Uuid updatedBy FK
-        string title
-        string slug
-        text content        
-        string excerpt
-        Uuid featuredImageId FK
-        Uuid categoryId FK
-        int viewCount
-        ArticleStatus status
-        DateTimeOffset publishedAt
-        DateTimeOffset createdAt
-        DateTimeOffset updatedAt
-        boolean isDeleted
-        DateTimeOffset deletedAt
-    }
-    
-    Category {
-        Uuid id PK
-        string name
-        string slug
+        UUID id PK "IdentityRole"
+        citext name "IdentityRole"
+        citext normalizedName "IdentityRole"
+        string concurrencyStamp "IdentityRole"
         string description
     }
     
-    Tag {
-        Uuid id PK
-        string name
-        string slug
+    AspNetUserRoles {
+        UUID userId FK
+        UUID roleId FK
+    }
+    
+    Categories {
+        UUID id PK "BaseEntity"
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        citext name
+        citext slug
+        string description
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
+    }
+    
+    Tags {
+        UUID id PK "BaseEntity"
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        citext name
+        citext slug
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
+    }
+    
+    Articles {
+        UUID id PK "BaseEntity"
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        UUID categoryId FK
+        string title
+        citext slug
+        text content
+        string excerpt
+        int viewCount
+        ArticleStatus status
+        timestamptz publishedAt
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
     }
     
     ArticleTag {
-        Uuid articleId FK
-        Uuid tagId FK
+        UUID articleId FK
+        UUID tagId FK
     }
     
-    Bookmark {
-        Uuid id PK
-        Uuid userId FK
-        Uuid articleId FK
-        DateTimeOffset createdAt
+    Attachments {
+        UUID id PK "BaseEntity"
+        UUID articleId FK
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        AttachmentType attachmentType
+        string symbolicName
+        string storageLocation
+        citext contentType
+        bigint fileSize
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
+    }
+    
+    Bookmarks {
+        UUID id PK "BaseEntity"
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        UUID articleId FK
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
     }
     
     ReadingHistory {
-        Uuid id PK
-        Uuid userId FK
-        Uuid articleId FK
-        DateTimeOffset readAt
+        UUID id PK "BaseEntity"
+        UUID createdBy FK "BaseEntity"
+        UUID updatedBy FK "BaseEntity"
+        UUID articleId FK
+        timestamptz createdAt "BaseEntity"
+        timestamptz updatedAt "BaseEntity"
+        boolean isDeleted "BaseEntity"
+        timestamptz deletedAt "BaseEntity"
     }
     
-    Attachment {
-        Uuid id PK
-        Uuid articleId FK
-        Uuid createdBy FK
-        Uuid updatedBy FK
-        string symbolicName
-        string storageLocation
-        string contentType
-        long fileSize
-        DateTimeOffset createdAt
-        DateTimeOffset updatedAt
+    RefreshTokens {
+        UUID id PK
+        UUID userId FK
+        string token
+        timestamptz expiresAt
+        timestamptz createdAt
+        string createdByIp
+        timestamptz revokedAt
+        string revokedByIp
+        string replacedByToken
+        string reasonRevoked
     }
     
-    AspNetUsers ||--o{ Article : "authors"
-    Category ||--o{ Article : "categorizes"
-    AspNetUsers ||--o{ Bookmark : "creates"
+    AspNetUsers ||--o{ AspNetUserRoles : "has"
+    AspNetRoles ||--o{ AspNetUserRoles : "assigned to"
+    AspNetUsers ||--o{ Articles : "authors"
+    AspNetUsers ||--o{ Categories : "creates"
+    AspNetUsers ||--o{ Tags : "creates"
+    Categories ||--o{ Articles : "categorizes"
+    AspNetUsers ||--o{ Bookmarks : "creates"
     AspNetUsers ||--o{ ReadingHistory : "has"
-    Article ||--o{ ArticleTag : "has"
-    Tag ||--o{ ArticleTag : "applied to"
-    Article ||--o{ Bookmark : "bookmarked as"
-    Article ||--o{ ReadingHistory : "read in"
-    Article ||--o{ Attachment : "has"
+    Articles ||--o{ ArticleTag : "has"
+    Tags ||--o{ ArticleTag : "applied to"
+    Articles ||--o{ Bookmarks : "bookmarked as"
+    Articles ||--o{ ReadingHistory : "read in"
+    Articles ||--o{ Attachments : "has"
+    AspNetUsers ||--o{ RefreshTokens : "owns"
 ```
 
 ### 3.2. Table Definitions
 
-**Note**: ASP.NET Identity will create additional required tables (AspNetUserClaims, AspNetUserLogins, AspNetUserTokens, AspNetRoleClaims, AspNetUserRoles) in the `identity` schema. These tables are managed automatically by the Identity framework and not directly modified by our application.
+**Note**: ASP.NET Identity creates various tables in the `identity` schema, and our application adds additional tables in the `propulse` schema.
 
 #### 3.2.1. AspNetUsers
 
-The AspNetUsers table stores user account information and implements ASP.NET Core Identity's IdentityUser.
+The AspNetUsers table stores user account information and implements ASP.NET Core Identity's IdentityUser with custom extensions.
 
 **Schema**: `identity`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| UserName | varchar(256) | string | Unique, Not Null | User's login name |
-| NormalizedUserName | varchar(256) | string | Unique, Not Null | Uppercase version for lookups |
-| Email | citext | string | Unique, Not Null | Case-insensitive for lookups |
-| NormalizedEmail | citext | string | Unique, Not Null | For Identity framework |
-| EmailConfirmed | boolean | bool | Not Null | Whether email is confirmed |
-| PasswordHash | text | string | Not Null | Hashed using Identity's hasher |
-| SecurityStamp | text | string | Not Null | For Identity framework |
-| ConcurrencyStamp | text | string | Not Null | For optimistic concurrency |
-| PhoneNumber | varchar(50) | string | Nullable | User's phone number |
-| PhoneNumberConfirmed | boolean | bool | Not Null | Whether phone is confirmed |
-| TwoFactorEnabled | boolean | bool | Not Null | Whether 2FA is enabled |
-| LockoutEnd | timestamptz | DateTimeOffset | Nullable | When lockout expires |
-| LockoutEnabled | boolean | bool | Not Null | Whether lockout is enabled |
-| AccessFailedCount | integer | int | Not Null | Failed login attempts |
-| DisplayName | varchar(100) | string | Not Null | User's display name |
-| Bio | text | string | Nullable | Author biography |
-| CreatedAt | timestamptz | DateTimeOffset | Not Null | When user was created |
-| UpdatedAt | timestamptz | DateTimeOffset | Not Null | When user was last updated |
-| IsDeleted | boolean | bool | Not Null, Default: false | Soft delete flag |
-| DeletedAt | timestamptz | DateTimeOffset | Nullable | When user was soft deleted |
+| Id | UUID | Guid | PK | Primary key |
+| UserName | CITEXT | string | Unique, Not Null | User's login name |
+| NormalizedUserName | CITEXT | string | Unique, Not Null | Uppercase version for lookups |
+| Email | CITEXT | string | Unique, Not Null | Case-insensitive for lookups |
+| NormalizedEmail | CITEXT | string | Unique, Not Null | For Identity framework |
+| EmailConfirmed | BOOLEAN | bool | Not Null, Default: FALSE | Whether email is confirmed |
+| PasswordHash | VARCHAR(256) | string | Nullable | Hashed using Identity's hasher |
+| SecurityStamp | VARCHAR(256) | string | Nullable | For Identity framework |
+| ConcurrencyStamp | TEXT | string | Nullable | For optimistic concurrency |
+| PhoneNumber | VARCHAR(20) | string | Nullable | User's phone number |
+| PhoneNumberConfirmed | BOOLEAN | bool | Not Null, Default: FALSE | Whether phone is confirmed |
+| TwoFactorEnabled | BOOLEAN | bool | Not Null, Default: FALSE | Whether 2FA is enabled |
+| LockoutEnd | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When lockout expires |
+| LockoutEnabled | BOOLEAN | bool | Not Null, Default: TRUE | Whether lockout is enabled |
+| AccessFailedCount | INTEGER | int | Not Null, Default: 0 | Failed login attempts |
+| DisplayName | TEXT | string | Nullable | User's display name |
+| Bio | TEXT | string | Nullable | Author biography |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | When user was created |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | When user was last updated |
+| LastLoginAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When user last logged in |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When user was soft deleted |
 
 #### 3.2.2. AspNetRoles
 
-The AspNetRoles table stores available roles in the system and implements ASP.NET Core Identity's IdentityRole.
+The AspNetRoles table stores available roles in the system and implements ASP.NET Core Identity's IdentityRole with extensions.
 
 **Schema**: `identity`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| Name | varchar(256) | string | Not Null | Role name (e.g., Reader, Author) |
-| NormalizedName | varchar(256) | string | Not Null | Uppercase version for lookups |
-| ConcurrencyStamp | text | string | Not Null | For optimistic concurrency |
+| Id | UUID | Guid | PK | Primary key |
+| Name | CITEXT | string | Not Null, Unique | Role name (e.g., Reader, Author) |
+| NormalizedName | CITEXT | string | Not Null, Unique | Uppercase version for lookups |
+| ConcurrencyStamp | TEXT | string | Nullable | For optimistic concurrency |
+| Description | VARCHAR(255) | string | Nullable | Role description |
 
-#### 3.2.3. Article
+#### 3.2.3. AspNetUserRoles
 
-The Article table stores all content articles.
+A joining table between AspNetUsers and AspNetRoles, implementing a many-to-many relationship.
+
+**Schema**: `identity`
+
+| Column | PostgreSQL Type | .NET Type | Options | Notes |
+|--------|----------------|-----------|---------|-------|
+| UserId | UUID | Guid | PK, FK | References AspNetUsers.Id |
+| RoleId | UUID | Guid | PK, FK | References AspNetRoles.Id |
+
+#### 3.2.4. RefreshTokens
+
+The RefreshTokens table stores refresh tokens for JWT authentication.
+
+**Schema**: `identity`
+
+| Column | PostgreSQL Type | .NET Type | Options | Notes |
+|--------|----------------|-----------|---------|-------|
+| Id | UUID | Guid | PK | Primary key |
+| UserId | UUID | Guid | FK, Not Null | References AspNetUsers.Id |
+| Token | VARCHAR(256) | string | Not Null, Unique | Token value |
+| ExpiresAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null | Expiration timestamp |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedByIp | VARCHAR(45) | string | Nullable | IP that created the token |
+| RevokedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When token was revoked |
+| RevokedByIp | VARCHAR(45) | string | Nullable | IP that revoked the token |
+| ReplacedByToken | VARCHAR(256) | string | Nullable | Token that replaced this one |
+| ReasonRevoked | VARCHAR(256) | string | Nullable | Reason for revocation |
+
+#### 3.2.5. Categories
+
+The Categories table stores article categories.
 
 **Schema**: `propulse`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| CreatedBy | uuid | Guid | FK, Not Null | References AspNetUsers.Id, original author |
-| UpdatedBy | uuid | Guid | FK, Nullable | References AspNetUsers.Id, last editor |
-| Title | varchar(200) | string | Not Null | Article title |
-| Slug | varchar(250) | string | Unique, Not Null | URL-friendly version of title |
-| Content | text | string | Not Null | Article content in Markdown |
-| Excerpt | varchar(500) | string | Nullable | Short summary for listings |
-| FeaturedImageId | uuid | Guid | FK, Nullable | References Attachment.Id |
-| ViewCount | int | int | Not Null, Default: 0 | Denormalized counter for performance |
-| Status | varchar(20) | ArticleStatus | Not Null | Enum: Draft, Published, Archived |
-| PublishedAt | timestamptz | DateTimeOffset | Nullable | When article was published |
-| CreatedAt | timestamptz | DateTimeOffset | Not Null | When article was created |
-| UpdatedAt | timestamptz | DateTimeOffset | Not Null | When article was last updated |
-| IsDeleted | boolean | bool | Not Null, Default: false | Soft delete flag |
-| DeletedAt | timestamptz | DateTimeOffset | Nullable | When article was soft deleted |
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| Name | CITEXT | string | Not Null, Unique | Category name |
+| Slug | CITEXT | string | Not Null, Unique | URL-friendly version of name |
+| Description | TEXT | string | Nullable | Category description |
 
-#### 3.2.4. Category
+#### 3.2.6. Tags
 
-The Category table stores article categories.
+The Tags table stores article tags.
 
 **Schema**: `propulse`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| Name | varchar(100) | string | Not Null, Unique | Category name |
-| Slug | varchar(120) | string | Not Null, Unique | URL-friendly version of name |
-| Description | varchar(500) | string | Nullable | Category description |
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| Name | CITEXT | string | Not Null, Unique | Tag name |
+| Slug | CITEXT | string | Not Null, Unique | URL-friendly version of name |
 
-#### 3.2.5. Tag
+#### 3.2.7. Articles
 
-The Tag table stores article tags.
-
-**Schema**: `propulse`
-
-| Column | PostgreSQL Type | .NET Type | Options | Notes |
-|--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| Name | varchar(50) | string | Not Null, Unique | Tag name |
-| Slug | varchar(60) | string | Not Null, Unique | URL-friendly version of name |
-
-#### 3.2.6. ArticleTag
-
-A joining table between Article and Tag, implementing a many-to-many relationship.
+The Articles table stores all content articles.
 
 **Schema**: `propulse`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| ArticleId | uuid | Guid | PK, FK | References Article.Id |
-| TagId | uuid | Guid | PK, FK | References Tag.Id |
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| CategoryId | UUID | Guid | FK, Not Null | References propulse.Categories.Id |
+| Content | TEXT | string | Not Null | Article content in Markdown |
+| Excerpt | TEXT | string | Nullable | Short summary for listings |
+| PublishedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When article was published |
+| Slug | CITEXT | string | Not Null, Unique | URL-friendly version of title |
+| Status | propulse."ArticleStatus" | enum | Not Null, Default: 'Draft' | Enum: Draft, Published, Archived |
+| Title | TEXT | string | Not Null | Article title |
+| ViewCount | INTEGER | int | Not Null, Default: 0 | Denormalized counter for performance |
 
-#### 3.2.8. Bookmark
+#### 3.2.8. ArticleTag
 
-The Bookmark table tracks which articles users have bookmarked.
+A joining table between Articles and Tags, implementing a many-to-many relationship.
 
 **Schema**: `propulse`
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| UserId | uuid | Guid | FK, Not Null | References AspNetUsers.Id |
-| ArticleId | uuid | Guid | FK, Not Null | References Article.Id |
-| CreatedAt | timestamptz | DateTimeOffset | Not Null | When bookmark was created |
+| ArticleId | UUID | Guid | PK, FK | References propulse.Articles.Id |
+| TagId | UUID | Guid | PK, FK | References propulse.Tags.Id |
 
-#### 3.2.9. ReadingHistory
+#### 3.2.9. Attachments
+
+The Attachments table stores media attachments for articles.
+
+**Schema**: `propulse`
+
+| Column | PostgreSQL Type | .NET Type | Options | Notes |
+|--------|----------------|-----------|---------|-------|
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| ArticleId | UUID | Guid | FK, Not Null | References propulse.Articles.Id |
+| AttachmentType | propulse."AttachmentType" | enum | Nullable | Enum: FeaturedImage, ContentImage |
+| SymbolicName | VARCHAR(255) | string | Not Null | User-friendly name for reference |
+| StorageLocation | VARCHAR(1024) | string | Not Null | Internal storage path |
+| ContentType | CITEXT | string | Not Null | MIME type of attachment |
+| FileSize | BIGINT | long | Not Null | Size in bytes |
+
+#### 3.2.10. Bookmarks
+
+The Bookmarks table tracks which articles users have bookmarked.
+
+**Schema**: `propulse`
+
+| Column | PostgreSQL Type | .NET Type | Options | Notes |
+|--------|----------------|-----------|---------|-------|
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| ArticleId | UUID | Guid | FK, Not Null | References propulse.Articles.Id |
+
+#### 3.2.11. ReadingHistory
 
 The ReadingHistory table tracks which articles users have read.
 
@@ -790,29 +907,14 @@ The ReadingHistory table tracks which articles users have read.
 
 | Column | PostgreSQL Type | .NET Type | Options | Notes |
 |--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| UserId | uuid | Guid | FK, Not Null | References AspNetUsers.Id |
-| ArticleId | uuid | Guid | FK, Not Null | References Article.Id |
-| ReadAt | timestamptz | DateTimeOffset | Not Null | When article was read |
-
-#### 3.2.10. Attachment
-
-The Attachment table stores media attachments for articles, with references that can be used in markdown content.
-
-**Schema**: `propulse`
-
-| Column | PostgreSQL Type | .NET Type | Options | Notes |
-|--------|----------------|-----------|---------|-------|
-| Id | uuid | Guid | PK | Generated using uuid-ossp extension |
-| ArticleId | uuid | Guid | FK, Not Null | References Article.Id |
-| CreatedBy | uuid | Guid | FK, Not Null | References AspNetUsers.Id, original uploader |
-| UpdatedBy | uuid | Guid | FK, Nullable | References AspNetUsers.Id, last modifier |
-| SymbolicName | varchar(255) | string | Not Null | User-friendly name for markdown references |
-| StorageLocation | varchar(1024) | string | Not Null | Internal path not exposed to users |
-| ContentType | varchar(100) | string | Not Null | MIME type of the attachment |
-| FileSize | bigint | long | Not Null | Size in bytes |
-| CreatedAt | timestamptz | DateTimeOffset | Not Null | When attachment was created |
-| UpdatedAt | timestamptz | DateTimeOffset | Not Null | When attachment was last updated |
+| Id | UUID | Guid | PK | Default gen_random_uuid() |
+| CreatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Creation timestamp |
+| CreatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| UpdatedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Not Null, Default: CURRENT_TIMESTAMP | Update timestamp |
+| UpdatedBy | UUID | Guid | FK, Nullable | References identity.AspNetUsers.Id |
+| IsDeleted | BOOLEAN | bool | Not Null, Default: FALSE | Soft delete flag |
+| DeletedAt | TIMESTAMP WITH TIME ZONE | DateTimeOffset | Nullable | When soft deleted |
+| ArticleId | UUID | Guid | FK, Not Null | References propulse.Articles.Id |
 
 ### 3.3. Relationship Definitions
 

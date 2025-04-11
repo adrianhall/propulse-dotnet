@@ -19,5 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ProPulse.Api\ProPulse.Api.csproj" />
     <ProjectReference Include="..\ProPulse.Web\ProPulse.Web.csproj" />
+    <ProjectReference Include="..\ProPulse.Database\ProPulse.Database.csproj" />
   </ItemGroup>
 </Project>
