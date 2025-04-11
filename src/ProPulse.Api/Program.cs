@@ -29,6 +29,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Database migrations are now handled by the database-migrator project in Aspire
+// app.MigrateDatabase();
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
