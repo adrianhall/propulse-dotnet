@@ -1,0 +1,28 @@
+{
+  "name": "propulse-aspire",
+  "version": "1.0.0",
+  "description": "NPM scripts for managing the .NET Aspire host",
+  "private": true,
+  "scripts": {
+    "dotnet:clean": "dotnet clean",
+    "predotnet:restore": "run-s dotnet:clean",
+    "dotnet:restore": "dotnet restore",
+    "predotnet:build": "run-s dotnet:restore",
+    "dotnet:build": "dotnet build --no-restore",
+    "predotnet:test": "run-s dotnet:build",
+    "dotnet:test": "dotnet test --no-build --collect:\"XPlat Code Coverage\"",
+    "predotnet:coverage": "run-s dotnet:test",
+    "dotnet:coverage": "reportgenerator -reports:\"**/TestResults/**/coverage.cobertura.xml\" -targetdir:coverage-report -reporttypes:Cobertura;MarkdownSummaryGitHub",
+    "postdotnet:coverage": "cross-cat ./coverage-report/SummaryGitHub.md",
+    "build": "run-s dotnet:build",
+    "prestart": "run-s build",
+    "start": "dotnet run --project ./aspire/ProPulse.AppHost/ProPulse.AppHost.csproj",
+    "test": "run-s dotnet:test"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "cross-cat": "^1.0.0",
+    "npm-run-all": "^4.1.5"
+  }
+}
