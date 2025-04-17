@@ -9,13 +9,30 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- 3. Create trigger functions
+
+-- Trigger function to maintain CreatedAt and UpdatedAt audit fields
 CREATE OR REPLACE FUNCTION update_audit_fields()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW."CreatedAt" IS NULL THEN
-        NEW."CreatedAt" = now();
+    IF TG_OP = 'INSERT' THEN
+        NEW."CreatedAt" := now();
+        NEW."UpdatedAt" := NEW."CreatedAt";
+    ELSE
+        NEW."UpdatedAt" := now();
     END IF;
-    NEW."UpdatedAt" = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger function to maintain DeletedAt based on IsDeleted
+CREATE OR REPLACE FUNCTION maintain_deletedat_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW."IsDeleted" AND (OLD."IsDeleted" IS DISTINCT FROM TRUE) THEN
+        NEW."DeletedAt" = now();
+    ELSIF NOT NEW."IsDeleted" AND (OLD."IsDeleted" IS DISTINCT FROM FALSE) THEN
+        NEW."DeletedAt" = NULL;
+    END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -25,8 +42,10 @@ CREATE TABLE IF NOT EXISTS "propulse"."Articles" (
     "Id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "Title" citext NOT NULL,
     "Content" text NOT NULL,
+    "PublishedAt" timestamptz NULL,
     "CreatedAt" timestamptz NOT NULL DEFAULT now(),
     "DeletedAt" timestamptz NULL,
+    "IsDeleted" boolean NOT NULL DEFAULT false,
     "UpdatedAt" timestamptz NOT NULL DEFAULT now()
 );
 
@@ -34,8 +53,13 @@ CREATE TABLE IF NOT EXISTS "propulse"."Articles" (
 CREATE INDEX IF NOT EXISTS IDX_Articles_CreatedAt ON "propulse"."Articles" ( "CreatedAt" );
 CREATE INDEX IF NOT EXISTS IDX_Articles_DeletedAt ON "propulse"."Articles" ( "DeletedAt" );
 CREATE INDEX IF NOT EXISTS IDX_Articles_UpdatedAt ON "propulse"."Articles" ( "UpdatedAt" );
+CREATE INDEX IF NOT EXISTS IDX_Articles_IsDeleted ON "propulse"."Articles" ( "IsDeleted" );
 
 -- Triggers for the Articles table
+CREATE OR REPLACE TRIGGER "TRG_Articles_MaintainDeletedAt"
+    BEFORE UPDATE ON "propulse"."Articles"
+    FOR EACH ROW EXECUTE FUNCTION maintain_deletedat_column();
+
 CREATE OR REPLACE TRIGGER "TRG_Articles_AuditFields"
     BEFORE UPDATE OR INSERT
     ON "propulse"."Articles"
