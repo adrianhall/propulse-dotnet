@@ -12,4 +12,8 @@
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.2.0" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.PostgreSQL.Extensions" Version="9.3.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ProPulse.DataModel.Initializer\ProPulse.DataModel.Initializer.csproj" />
+  </ItemGroup>
 </Project>

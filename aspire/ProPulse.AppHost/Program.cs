@@ -24,6 +24,10 @@ var blobStorage = azurite.AddBlobs("blob-storage");
 // Database Migration Services
 // ---------------------------------------------------------------
 
+var migrator = builder.AddProject<Projects.ProPulse_DataModel_Initializer>("db-migrations")
+    .WithReference(database, "DefaultConnection")
+    .WaitFor(database);
+
 // ---------------------------------------------------------------
 // API Services
 // ---------------------------------------------------------------

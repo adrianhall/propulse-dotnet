@@ -157,6 +157,9 @@ coverage*.info
 *.coverage
 *.coveragexml
 
+# Report Generator output
+coverage-report/
+
 # NCrunch
 _NCrunch_*
 .*crunch*.local.xml
