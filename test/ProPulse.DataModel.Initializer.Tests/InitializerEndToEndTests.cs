@@ -8,6 +8,7 @@ namespace ProPulse.DataModel.Initializer.Tests;
 /// <summary>
 /// End-to-end tests for the ProPulse.DataModel.Initializer console application.
 /// </summary>
+[Collection("TestContainerCollection")]
 public sealed class InitializerEndToEndTests(PostgreSqlContainerFixture fixture) : IClassFixture<PostgreSqlContainerFixture>
 {
     /// <summary>

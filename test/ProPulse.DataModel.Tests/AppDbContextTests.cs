@@ -12,6 +12,7 @@ namespace ProPulse.DataModel.Tests;
 /// Initializes a new instance of the <see cref="AppDbContextTests"/> class.
 /// </remarks>
 /// <param name="fixture">The PostgreSQL test container fixture.</param>
+[Collection("TestContainerCollection")]
 public sealed class AppDbContextTests(PostgreSqlContainerFixture fixture) : IClassFixture<PostgreSqlContainerFixture>
 {
     /// <summary>
@@ -64,7 +65,7 @@ public sealed class AppDbContextTests(PostgreSqlContainerFixture fixture) : ICla
         DateTimeOffset originalCreatedAt = article.CreatedAt;
         DateTimeOffset originalUpdatedAt = article.UpdatedAt;
         DateTimeOffset expectedPublishedAt = DateTimeOffset.UtcNow.AddDays(1);
-        byte[] originalVersion = [..article.Version];
+        byte[] originalVersion = [.. article.Version];
 
         article.Content = "Updated content";
         article.PublishedAt = expectedPublishedAt;
@@ -100,7 +101,7 @@ public sealed class AppDbContextTests(PostgreSqlContainerFixture fixture) : ICla
 
         DateTimeOffset originalCreatedAt = article.CreatedAt;
         DateTimeOffset originalUpdatedAt = article.UpdatedAt;
-        byte[] originalVersion = [..article.Version];
+        byte[] originalVersion = [.. article.Version];
         article.IsDeleted = true;
         DateTimeOffset expectedDate = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync();
@@ -138,7 +139,7 @@ public sealed class AppDbContextTests(PostgreSqlContainerFixture fixture) : ICla
 
         DateTimeOffset originalCreatedAt = article.CreatedAt;
         DateTimeOffset originalUpdatedAt = article.UpdatedAt;
-        byte[] originalVersion = [..article.Version];
+        byte[] originalVersion = [.. article.Version];
         article.IsDeleted = false;
         DateTimeOffset expectedDate = DateTimeOffset.UtcNow;
         await context.SaveChangesAsync();

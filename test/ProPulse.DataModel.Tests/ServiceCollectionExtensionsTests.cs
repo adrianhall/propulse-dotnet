@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ProPulse.Core.Options;
-using Xunit;
 
 namespace ProPulse.DataModel.Tests;
 

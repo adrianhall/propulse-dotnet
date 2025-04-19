@@ -11,6 +11,7 @@ namespace ProPulse.DataModel.Initializer.Tests;
 /// <summary>
 /// Unit tests for <see cref="DatabaseMigratorService"/>.
 /// </summary>
+[Collection("TestContainerCollection")]
 public class DatabaseMigratorServiceTests(PostgreSqlContainerFixture fixture) : IClassFixture<PostgreSqlContainerFixture>
 {
     /// <summary>

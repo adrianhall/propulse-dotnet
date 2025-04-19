@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace ProPulse.DataModel.Migrations.Tests;
 
 [ExcludeFromCodeCoverage]
+[Collection("TestContainerCollection")]
 public class DatabaseMigratorIntegrationTests(PostgreSqlContainerFixture fixture) : IClassFixture<PostgreSqlContainerFixture>
 {
     /// <summary>

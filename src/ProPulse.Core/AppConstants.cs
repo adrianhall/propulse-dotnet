@@ -18,4 +18,14 @@ public static class AppConstants
     /// The maximum length for article titles.
     /// </summary>
     public const int ArticleTitleMaxLength = 256;
+
+    /// <summary>
+    /// The maximum value for the $top (paging) parameter in list endpoints.
+    /// </summary>
+    public const int MaxTop = 100;
+
+    /// <summary>
+    /// The format used within the Timestamp series of headers.
+    /// </summary>
+    public const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.ffffffK";
 }

@@ -17,7 +17,7 @@
     "predotnet:test": "run-s dotnet:build",
     "dotnet:test": "dotnet test --no-build --collect:\"XPlat Code Coverage\"",
     "predotnet:coverage": "run-s dotnet:clean:coverage dotnet:test",
-    "dotnet:coverage": "reportgenerator -reports:\"**/TestResults/**/coverage.cobertura.xml\" -targetdir:coverage-report -reporttypes:Cobertura;MarkdownSummaryGitHub",
+    "dotnet:coverage": "reportgenerator -reports:\"**/TestResults/**/coverage.cobertura.xml\" -classfilters:\"+ProPulse.*\" -assemblyfilters:\"+ProPulse.*;-ProPulse.AppHost;-ProPulse.ServiceDefaults;-*.Tests\" -targetdir:coverage-report -reporttypes:Cobertura;MarkdownSummaryGitHub",
     "postdotnet:coverage": "cross-cat ./coverage-report/SummaryGitHub.md",
     "build": "run-s dotnet:build",
     "prestart": "run-s build",
